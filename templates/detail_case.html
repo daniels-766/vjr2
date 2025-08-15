@@ -1,0 +1,466 @@
+<!doctype html>
+<html class="no-js" lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Detail Case</title>
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <link rel="icon" href="../static/assets/img/vjr3.png" type="image/x-icon" />
+
+        <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:300,400,600,700,800" rel="stylesheet">
+        
+        <link rel="stylesheet" href="../static/assets/node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/ionicons/dist/css/ionicons.min.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/icon-kit/dist/css/iconkit.min.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/perfect-scrollbar/css/perfect-scrollbar.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/datatables.net-bs4/css/dataTables.bootstrap4.min.css">
+        <link rel="stylesheet" href="../static/assets/dist/css/theme.min.css">
+        <script src="../static/assets/js/vendor/modernizr-2.8.3.min.js"></script>
+    </head>
+
+    <body>
+        <div class="wrapper">
+            <header class="header-top" header-theme="light">
+                <div class="container-fluid">
+                    <div class="d-flex justify-content-between">
+                        <div class="top-menu d-flex align-items-center">
+                            <button type="button" id="navbar-fullscreen" class="nav-link"><i class="ik ik-maximize"></i></button>
+                        </div>
+                        <div class="top-menu d-flex align-items-center">
+                            <button type="button" class="nav-link ml-10 right-sidebar-toggle">
+                                <i class="ik ik-message-square"></i>
+                                <span class="badge bg-success">{{ online_users_count }}</span>
+                            </button>
+                            <div class="dropdown">
+                                <a class="dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img class="avatar" src="../static/assets/img/vjr3.png" alt=""></a>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                                    <a class="dropdown-item" href="{{ url_for('logout') }}"><i class="ik ik-power dropdown-icon"></i> Logout</a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-wrap">
+                <div class="app-sidebar colored">
+                    <div class="sidebar-header">
+                        <a class="header-brand" href="{{ url_for('dashboard') }}">
+                            <div class="logo-img">
+                            <img src="../static/assets/img/vjr2.png" 
+                                class="header-brand-img" 
+                                alt="lavalite" 
+                                width="200" 
+                                height="30">
+                        </div>
+                        </a>
+                    </div>
+                    
+                    <div class="sidebar-content">
+                        <div class="nav-container">
+                            <nav id="main-menu-navigation" class="navigation-main">
+                                <div class="nav-lavel">Navigation</div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('dashboard') }}"><i class="ik ik-bar-chart-2"></i><span>Dashboard</span></a>
+                                </div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('manage_users') }}"><i class="ik ik-user"></i><span>Account Management</span></a>
+                                </div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('manage_group') }}"><i class="ik ik-users"></i><span>Group Management</span></a>
+                                </div>
+                                <div class="nav-lavel">Information</div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('upload_data') }}"><i class="ik ik-file-text"></i><span>Data Management</span></a>
+                                </div>
+                                <div class="nav-item active">
+                                    <a href="{{ url_for('my_case') }}"><i class="ik ik-edit"></i><span>Case Management</span></a>
+                                </div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('login_logs') }}"><i class="ik ik-clock"></i><span>Log History</span></a>
+                                </div>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-content">
+                    <div class="container-fluid">
+                        <div class="page-header">
+                            <div class="row align-items-end">
+                                <div class="col-lg-8">
+                                    <div class="page-header-title">
+                                        <i class="ik ik-edit bg-blue"></i>
+                                        <div class="d-inline">
+                                            <h5>Detail Case</h5>
+                                            <span>Information about the spesific case</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <nav class="breadcrumb-container" aria-label="breadcrumb">
+                                        <ol class="breadcrumb">
+                                            <li class="breadcrumb-item">
+                                                <a href="{{ url_for('dashboard') }}"><i class="ik ik-home"></i></a>
+                                            </li>
+                                            <li class="breadcrumb-item">
+                                                <a href="{{ url_for('my_case') }}">Information</a>
+                                            </li>
+                                            <li class="breadcrumb-item active" aria-current="page">Detail Case</li>
+                                        </ol>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-4 col-md-5">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="text-center"> 
+                                            <img src="{{ group.logo if group and group.logo else '/static/assets/img/default_logo.png' }}" 
+                                                class="rounded-circle" width="150" />
+                                            
+                                            <h4 class="card-title mt-10">User : <b>{{ user.username }}</b></h4>
+                                            <p class="card-subtitle">Group : {{ group.company if group else '-' }}</p>
+                                            
+                                            <div class="row text-center justify-content-md-center">
+                                                <div class="col-4">
+                                                    <span><i class="ik ik-user"></i> 
+                                                    <font class="font-medium">{{ user.phone }}</font></span>
+                                                </div>
+                                                <div class="col-4">
+                                                    <span><i class="ik ik-mail"></i> 
+                                                    <font class="font-medium">{{ user.email }}</font></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-8 col-md-7">
+                                <div class="card">
+                                    <ul class="nav nav-pills custom-pills" id="pills-tab" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" id="pills-timeline-tab" data-toggle="pill" href="#current-month" role="tab" aria-controls="pills-timeline" aria-selected="true">Basic Information</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#last-month" role="tab" aria-controls="pills-profile" aria-selected="false">Emergency Contacts</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="pills-setting-tab" data-toggle="pill" href="#previous-month" role="tab" aria-controls="pills-setting" aria-selected="false">Additional Information</a>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content" id="pills-tabContent">
+                                        <div class="tab-pane fade show active" id="current-month" role="tabpanel" aria-labelledby="pills-timeline-tab">
+                                            <div class="card shadow-sm border-0 rounded-3 animate__animated animate__fadeIn">
+                                                <div class="card-header bg-gradient-primary text-white d-flex align-items-center">
+                                                    <i class="bi bi-receipt-cutoff me-2 fs-5"></i>
+                                                    <h5 class="mb-0 text-dark"> <b>Order Details : {{ data.order_no }}</b></h5>
+                                                </div>
+                                                <div class="card-body p-4">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-striped table-hover align-middle">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th class="text-primary w-25"><i class="bi bi-hash me-2"></i>Order Number</th>
+                                                                    <td>{{ data.order_no or "-" }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="text-primary"><i class="bi bi-person-fill me-2"></i>Customer Name</th>
+                                                                    <td>{{ data.nama_nasabah or "-" }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="text-primary"><i class="bi bi-telephone-fill me-2"></i>Phone</th>
+                                                                    <td>{{ data.phone or "-" }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="text-primary"><i class="bi bi-exclamation-triangle-fill me-2"></i>OVD</th>
+                                                                    <td><span class="badge bg-danger">{{ data.overdue or "-" }}</span></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="text-primary"><i class="bi bi-cash me-2"></i>Principal Amount</th>
+                                                                    <td class="fw-bold text-success">{{ data.pokok_pinjaman_int or "-" }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="text-primary"><i class="bi bi-wallet2 me-2"></i>Outstanding Amount</th>
+                                                                    <td class="fw-bold text-warning">{{ data.total_tagihan_int or "-" }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="text-primary"><i class="bi bi-chat-left-text-fill me-2"></i>Remarks</th>
+                                                                    <td>{{ data.remarks_display or "-" }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="text-primary"><i class="bi bi-house-door-fill me-2"></i>Address</th>
+                                                                    <td>{{ data.alamat or "-" }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="text-primary"><i class="bi bi-briefcase-fill me-2"></i>Job</th>
+                                                                    <td>{{ data.pekerjaan or "-" }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="text-primary"><i class="bi bi-calendar-event-fill me-2"></i>Loan Date</th>
+                                                                    <td>{{ data.waktu_peminjaman or "-" }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="text-primary"><i class="bi bi-calendar-x-fill me-2"></i>Exp Date</th>
+                                                                    <td><span class="badge bg-secondary">{{ data.exp_date or "-" }}</span></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="text-primary"><i class="bi bi-sticky me-2"></i>Note</th>
+                                                                    <td>{{ data.catatan or "-" }}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="last-month" role="tabpanel" aria-labelledby="pills-profile-tab">
+                                            <div class="row g-4 p-3">
+                                                <div class="col-md-6">
+                                                    <div class="card shadow-sm border-0 rounded-3 h-100 animate__animated animate__fadeInUp">
+                                                        <div class="card-header bg-primary text-white d-flex align-items-center">
+                                                            <i class="bi bi-telephone-fill me-2"></i>
+                                                            <h6 class="mb-0">Emergency Contact 1</h6>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <p class="mb-1"><strong>Full Name:</strong></p>
+                                                            <p class="bg-light p-2 rounded text-muted">{{ data.nama_ec1 or "-" }}</p>
+                                                            <p class="mb-1"><strong>Mobile:</strong></p>
+                                                            <p class="bg-light p-2 rounded text-muted">{{ data.nomor_ec1 or "-" }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="card shadow-sm border-0 rounded-3 h-100 animate__animated animate__fadeInUp">
+                                                        <div class="card-header bg-success text-white d-flex align-items-center">
+                                                            <i class="bi bi-telephone-fill me-2"></i>
+                                                            <h6 class="mb-0">Emergency Contact 2</h6>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <p class="mb-1"><strong>Full Name:</strong></p>
+                                                            <p class="bg-light p-2 rounded text-muted">{{ data.nama_ec2 or "-" }}</p>
+                                                            <p class="mb-1"><strong>Mobile:</strong></p>
+                                                            <p class="bg-light p-2 rounded text-muted">{{ data.phone_ec2 or "-" }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="previous-month" role="tabpanel" aria-labelledby="pills-setting-tab">
+                                            <div class="card shadow-sm border-0 rounded-3 animate__animated animate__fadeIn">
+                                                <div class="card-header bg-info text-white d-flex align-items-center">
+                                                    <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                                                    <h5 class="mb-0">Additional Information</h5>
+                                                </div>
+                                                <div class="card-body p-4">
+                                                    <div class="row g-4">
+                                                        <div class="col-md-6 mb-3">
+                                                            <div class="p-3 border rounded shadow-sm h-100">
+                                                                <h6 class="text-muted"><i class="bi bi-1-circle-fill text-info me-1"></i>Additional Information 1</h6>
+                                                                <p class="mb-0">{{ data.optional_1 or "-" }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6 mb-3">
+                                                            <div class="p-3 border rounded shadow-sm h-100">
+                                                                <h6 class="text-muted"><i class="bi bi-2-circle-fill text-info me-1"></i>Additional Information 2</h6>
+                                                                <p class="mb-0">{{ data.optional_2 or "-" }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6 mb-3">
+                                                            <div class="p-3 border rounded shadow-sm h-100">
+                                                                <h6 class="text-muted"><i class="bi bi-3-circle-fill text-info me-1"></i>Additional Information 3</h6>
+                                                                <p class="mb-0">{{ data.ooptional_3 or "-" }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6 mb-3">
+                                                            <div class="p-3 border rounded shadow-sm h-100">
+                                                                <h6 class="text-muted"><i class="bi bi-4-circle-fill text-info me-1"></i>Additional Information 4</h6>
+                                                                <p class="mb-0">{{ data.optional_4 or "-" }}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <aside class="right-sidebar" style="max-height: 600px; overflow-y: auto;">
+                    <div class="sidebar-chat" data-plugin="chat-sidebar">
+                        <div class="sidebar-chat-info">
+                            <h6>List Account Active</h6>
+                            <form class="mr-t-10">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" placeholder="Search for account ..."> 
+                                    <i class="ik ik-search"></i>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="chat-list">
+                            <div class="list-group row">
+                                {% for user in all_users %}
+                                <span class="list-group-item" data-chat-user="{{ user.username }}">
+                                    <figure class="{{ 'user--online' if user.is_online() else 'user--busy' }}">
+                                        <img src="{{ user.group_rel.logo or '/static/assets/img/default.png' }}"
+                                            alt="{{ user.group_rel.company }} logo"
+                                            class="rounded-circle img-40 align-top mr-15">
+                                    </figure>
+                                    <span>
+                                        <span class="name">{{ user.username }}</span>
+                                        <span class="username">{{ user.last_seen_ago() }}</span>
+                                    </span>
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <div class="chat-panel" hidden>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            <a href="javascript:void(0);"><i class="ik ik-message-square text-success"></i></a>  
+                            <span class="user-name">John Doe</span> 
+                            <button type="button" class="close" aria-label="Close"><span aria-hidden="true">×</span></button>
+                        </div>
+                        <div class="card-body">
+                            <div class="widget-chat-activity flex-1">
+                                <div class="messages">
+                                    <div class="message media reply">
+                                        <figure class="user--online">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/3.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>Epic Cheeseburgers come in all kind of styles.</p>
+                                        </div>
+                                    </div>
+                                    <div class="message media">
+                                        <figure class="user--online">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/1.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>Cheeseburgers make your knees weak.</p>
+                                        </div>
+                                    </div>
+                                    <div class="message media reply">
+                                        <figure class="user--offline">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/5.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>Cheeseburgers will never let you down.</p>
+                                            <p>They'll also never run around or desert you.</p>
+                                        </div>
+                                    </div>
+                                    <div class="message media">
+                                        <figure class="user--online">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/1.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>A great cheeseburger is a gastronomical event.</p>
+                                        </div>
+                                    </div>
+                                    <div class="message media reply">
+                                        <figure class="user--busy">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/5.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>There's a cheesy incarnation waiting for you no matter what you palete preferences are.</p>
+                                        </div>
+                                    </div>
+                                    <div class="message media">
+                                        <figure class="user--online">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/1.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>If you are a vegan, we are sorry for you loss.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <form action="javascript:void(0)" class="card-footer" method="post">
+                            <div class="d-flex justify-content-end">
+                                <textarea class="border-0 flex-1" rows="1" placeholder="Type your message here"></textarea>
+                                <button class="btn btn-icon" type="submit"><i class="ik ik-arrow-right text-success"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <footer class="footer">
+                    <div class="w-100 clearfix">
+                        <span class="text-center text-sm-left d-md-inline-block">Copyright © 2025 VJR. All Rights Reserved.</span>
+                    </div>
+                </footer>
+            </div>
+        </div>
+        
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script>window.jQuery || document.write('<script src="../static/assets/src/js/vendor/jquery-3.3.1.min.js"><\/script>')</script>
+        <script src="../static/assets/node_modules/popper.js/dist/umd/popper.min.js"></script>
+        <script src="../static/assets/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="../static/assets/node_modules/perfect-scrollbar/dist/perfect-scrollbar.min.js"></script>
+        <script src="../static/assets/node_modules/screenfull/dist/screenfull.js"></script>
+        <script src="../static/assets/node_modules/datatables.net/js/jquery.dataTables.min.js"></script>
+        <script src="../static/assets/node_modules/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
+        <script src="../static/assets/dist/js/theme.min.js"></script>
+        <script src="../static/assets/js/datatables.js"></script>
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='https://www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X','auto');ga('send','pageview');
+        </script>
+        <script>
+            setTimeout(function() {
+                const alert = document.getElementById("flash-alert");
+                if (alert) {
+                    let bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }
+            }, 3000);
+        </script>
+        <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const searchInput = document.querySelector(".sidebar-chat-info input");
+                    const items = document.querySelectorAll(".list-group-item");
+                    searchInput.addEventListener("keyup", function() {
+                        const query = this.value.toLowerCase();
+                        items.forEach(item => {
+                            const name = item.querySelector(".name").textContent.toLowerCase();
+                            const username = item.querySelector(".username").textContent.toLowerCase();
+                            if (name.includes(query) || username.includes(query)) {
+                                item.style.display = "";
+                            } else {
+                                item.style.display = "none";
+                            }
+                        });
+                    });
+                });
+            </script>
+    </body>
+</html>

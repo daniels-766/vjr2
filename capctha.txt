@@ -1,0 +1,32 @@
+from flask import make_response
+
+@app.route('/captcha_img')
+def captcha_img():
+    captcha_text = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    session['captcha'] = captcha_text
+
+    width, height = 160, 60
+    image = Image.new('RGB', (width, height), (255, 255, 255))
+
+    font_path = os.path.join(os.path.dirname(__file__), 'static/assets/fonts/arial.ttf')
+    font = ImageFont.truetype(font_path, 28)
+
+    draw = ImageDraw.Draw(image)
+
+    for i, char in enumerate(captcha_text):
+        draw.text((10 + i * 24, 10), char, font=font, fill=(0, 0, 0))
+
+    for _ in range(5):
+        x1, y1 = random.randint(0, width), random.randint(0, height)
+        x2, y2 = random.randint(0, width), random.randint(0, height)
+        draw.line(((x1, y1), (x2, y2)), fill=(0, 0, 0), width=1)
+
+    image = image.filter(ImageFilter.GaussianBlur(1))
+
+    buffer = io.BytesIO()
+    image.save(buffer, 'PNG')
+    buffer.seek(0)
+
+    response = make_response(buffer.read())
+    response.headers.set('Content-Type', 'image/png')
+    return response

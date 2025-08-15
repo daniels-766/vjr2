@@ -1,0 +1,9 @@
+flask
+flask_sqlalchemy
+Pillow
+flask_login
+flask_migrate
+pandas
+flask_apscheduler
+pymysql
+openpyxl

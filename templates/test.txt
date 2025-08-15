@@ -1,0 +1,23 @@
+<h3>Detail Case: {{ data.order_no }}</h3>
+<table class="table table-bordered">
+    <tr><th>Order Number</th><td>{{ data.order_no }}</td></tr>
+    <tr><th>Customer Name</th><td>{{ data.nama_nasabah }}</td></tr>
+    <tr><th>Phone</th><td>{{ data.phone }}</td></tr>
+    <tr><th>OVD</th><td>{{ data.overdue }}</td></tr>
+    <tr><th>Principal Amount</th><td>{{ data.pokok_pinjaman_int }}</td></tr>
+    <tr><th>Outstanding Amount</th><td>{{ data.total_tagihan_int }}</td></tr>
+    <tr><th>Remarks</th><td>{{ data.remarks_display }}</td></tr>
+    <tr><th>Alamat</th><td>{{ data.alamat }}</td></tr>
+    <tr><th>Pekerjaan</th><td>{{ data.pekerjaan }}</td></tr>
+    <tr><th>Waktu Peminjaman</th><td>{{ data.waktu_peminjaman }}</td></tr>
+    <tr><th>Exp Date</th><td>{{ data.exp_date }}</td></tr>
+    <tr><th>Nama EC1</th><td>{{ data.nama_ec1 }}</td></tr>
+    <tr><th>Nomor EC1</th><td>{{ data.nomor_ec1 }}</td></tr>
+    <tr><th>Nama EC2</th><td>{{ data.nama_ec2 }}</td></tr>
+    <tr><th>Phone EC2</th><td>{{ data.phone_ec2 }}</td></tr>
+    <tr><th>Catatan</th><td>{{ data.catatan }}</td></tr>
+    <!-- Tambah field lain sesuai kebutuhan -->
+</table>
+
+<a href="{{ url_for('my_case') }}" class="btn btn-secondary">Back to list</a>
+

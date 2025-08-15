@@ -1,0 +1,791 @@
+<!doctype html>
+<html class="no-js" lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Manage Data</title>
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <link rel="icon" href="../static/assets/img/vjr3.png" type="image/x-icon" />
+
+        <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:300,400,600,700,800" rel="stylesheet">
+        
+        <link rel="stylesheet" href="../static/assets/node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/ionicons/dist/css/ionicons.min.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/icon-kit/dist/css/iconkit.min.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/perfect-scrollbar/css/perfect-scrollbar.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/weather-icons/css/weather-icons.min.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/owl.carousel/dist/assets/owl.carousel.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/owl.carousel/dist/assets/owl.theme.default.css">
+        <link rel="stylesheet" href="../static/assets/node_modules/chartist/dist/chartist.css">
+        <link rel="stylesheet" href="../static/assets/dist/css/theme.min.css">
+        <script src="../static/assets/js/vendor/modernizr-2.8.3.min.js"></script>
+        <style>
+            .custom-toast-container {
+                position: fixed;
+                top: 50px;
+                right: 20px;
+                z-index: 2147483647; /* maksimal untuk browser */
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                pointer-events: none; /* biar klik elemen di bawahnya tetap bisa */
+            }
+
+            .custom-toast {
+                display: flex;
+                align-items: center;
+                padding: 12px 16px;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                min-width: 250px;
+                box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+                animation: fadeIn 0.4s ease, fadeOut 0.4s ease 2.6s;
+                pointer-events: auto; /* biar tombol close bisa diklik */
+            }
+
+            .custom-toast-success { background-color: #28a745; }
+            .custom-toast-error { background-color: #dc3545; }
+            .custom-toast-notice { background-color: #17a2b8; }
+
+            .toast-icon {
+                margin-right: 10px;
+                font-size: 18px;
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(-10px); }
+            }
+
+        </style>
+        <style>
+    /* Latar belakang modal transparan lembut */
+    .modal-content {
+        border-radius: 12px;
+        border: none;
+        background: #fdfdfd;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    /* Header */
+    .modal-header {
+        background: #f7f7f7;
+        border-bottom: 1px solid #e5e5e5;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .modal-title {
+        font-weight: 600;
+        font-size: 1.2rem;
+        color: #444;
+    }
+
+    /* Input & select */
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        transition: all 0.2s ease-in-out;
+        background-color: #fff;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #a3b18a; /* hijau lembut */
+        box-shadow: 0 0 0 0.15rem rgba(163, 177, 138, 0.25);
+    }
+
+    /* Label */
+    .form-label {
+        font-weight: 500;
+        color: #555;
+    }
+
+    /* Footer */
+    .modal-footer {
+        border-top: 1px solid #e5e5e5;
+    }
+
+    /* Tombol */
+    .btn-secondary {
+        background-color: #d8e2dc;
+        color: #333;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+    }
+
+    .btn-secondary:hover {
+        background-color: #c7d6d0;
+    }
+
+</style>
+
+    </head>
+
+    <body>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="custom-toast-container position-fixed top-0 end-0 p-3" style="z-index: 500;">
+                    {% for category, message in messages %}
+                        <div class="custom-toast custom-toast-{{ 'danger' if category == 'error' else category }}">
+                            <div class="toast-icon">
+                                {% if category == 'success' %}
+                                    ✅
+                                {% elif category == 'error' %}
+                                    ❌
+                                {% else %}
+                                    ℹ️
+                                {% endif %}
+                            </div>
+                            <div class="toast-message">
+                                <strong>
+                                    {% if category == 'success' %}
+                                        Success!
+                                    {% elif category == 'error' %}
+                                        Error!
+                                    {% else %}
+                                        Notice!
+                                    {% endif %}
+                                </strong>
+                                <span>{{ message }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="wrapper">
+            <header class="header-top" header-theme="light">
+                <div class="container-fluid">
+                    <div class="d-flex justify-content-between">
+                        <div class="top-menu d-flex align-items-center">
+                            <button type="button" id="navbar-fullscreen" class="nav-link"><i class="ik ik-maximize"></i></button>
+                        </div>
+                        <div class="top-menu d-flex align-items-center">
+                            <button type="button" class="nav-link ml-10 right-sidebar-toggle">
+                                <i class="ik ik-message-square"></i>
+                                <span class="badge bg-success">{{ online_users_count }}</span>
+                            </button>
+                            <div class="dropdown">
+                                <a class="dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img class="avatar" src="../static/assets/img/vjr3.png" alt=""></a>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                                    <a class="dropdown-item" href="{{ url_for('logout') }}"><i class="ik ik-power dropdown-icon"></i> Logout</a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-wrap">
+                <div class="app-sidebar colored">
+                    <div class="sidebar-header">
+                        <a class="header-brand" href="{{ url_for('dashboard') }}">
+                            <div class="logo-img">
+                            <img src="../static/assets/img/vjr2.png" 
+                                class="header-brand-img" 
+                                alt="lavalite" 
+                                width="200" 
+                                height="30">
+                        </div>
+                        </a>
+                    </div>
+                    
+                    <div class="sidebar-content">
+                        <div class="nav-container">
+                            <nav id="main-menu-navigation" class="navigation-main">
+                                <div class="nav-lavel">Navigation</div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('dashboard') }}"><i class="ik ik-bar-chart-2"></i><span>Dashboard</span></a>
+                                </div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('manage_users') }}"><i class="ik ik-user"></i><span>Account Management</span></a>
+                                </div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('manage_group') }}"><i class="ik ik-users"></i><span>Group Management</span></a>
+                                </div>
+                                <div class="nav-lavel">Information</div>
+                                <div class="nav-item active">
+                                    <a href="{{ url_for('upload_data') }}"><i class="ik ik-file-text"></i><span>Data Management</span></a>
+                                </div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('my_case') }}"><i class="ik ik-edit"></i><span>Case Management</span></a>
+                                </div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('login_logs') }}"><i class="ik ik-clock"></i><span>Log History</span></a>
+                                </div>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-content">
+                    <div class="container-fluid">
+                        <div class="page-header">
+                            <div class="row align-items-end">
+                                <div class="col-lg-8">
+                                    <div class="page-header-title">
+                                        <i class="ik ik-file-text bg-blue"></i>
+                                        <div class="d-inline">
+                                            <h5>Data Management</h5>
+                                            <span>Detail data for user account</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <nav class="breadcrumb-container" aria-label="breadcrumb">
+                                        <ol class="breadcrumb">
+                                            <li class="breadcrumb-item">
+                                                <a href="{{ url_for('dashboard') }}"><i class="ik ik-home"></i></a>
+                                            </li>
+                                            <li class="breadcrumb-item">
+                                                <a href="#">Information</a>
+                                            </li>
+                                            <li class="breadcrumb-item active" aria-current="page">Data Management</li>
+                                        </ol>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="kt_modal_add_account" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="kt_modal_add_account_label">Upload Data</h5>
+                                    </div>
+                                    <form action="{{ url_for('upload_data') }}" method="POST" enctype="multipart/form-data">
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label for="account-name" class="form-label">Account Name</label>
+                                                <select class="form-select form-control w-50" id="account-name" name="user_id" required>
+                                                    <option value="">-- Select Akun --</option>
+                                                    {% for user in all_users %}
+                                                        <option value="{{ user.id }}">{{ user.username }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="exp-date" class="form-label">Exp Date</label>
+                                                <input type="date" class="form-control" id="exp-date" name="date" required>
+                                            </div>
+                                            <div class="mb-3" style="margin-bottom: 1.25rem;">
+                                            <label for="file" class="form-label" style="font-weight: 600; color: #333; display: block; margin-bottom: 0.5rem;">
+                                                Attach File
+                                            </label>
+                                            <input 
+                                                type="file" 
+                                                class="form-control file-upload-default" 
+                                                id="file" 
+                                                name="file" 
+                                                required
+                                                style="
+                                                display: block;
+                                                width: 100%;
+                                                padding: 0.4rem 0.4rem;
+                                                border-radius: 8px;
+                                                color: #333;
+                                                cursor: pointer;
+                                                transition: border-color 0.3s ease, background-color 0.3s ease;
+                                                "
+                                                onfocus="this.style.borderColor='#388E3C'; this.style.backgroundColor='#e8f5e9';"
+                                                onblur="this.style.borderColor='#4CAF50'; this.style.backgroundColor='#f9fff9';"
+                                            >
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="submit" class="btn btn-primary">Upload</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteModalLabel">Confirm to Delete Data?</h5>
+                                    </div>
+                                    <div class="modal-body">
+                                        Are you sure to <b>delete</b> all data from this account?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form method="POST" id="deleteForm">
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="kt_modal_del_account" tabindex="-1" aria-labelledby="kt_modal_del_account_label" aria-hidden="true">
+                            <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                <h5 class="modal-title" id="kt_modal_del_account_label">Delete Account</h5>
+                                </div>
+                                <form action="{{ url_for('delete_account') }}" method="POST">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="account-id" class="form-label">Account Name</label>
+                                        <select class="form-select" id="account-username" name="user_id" required>
+                                            <option value="">-- Select Akun --</option>
+                                            {% for user in users %}
+                                                <option value="{{ user.id }}">{{ user.id_system }}</option>
+                                            {% endfor %}
+                                        </select>                          
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="delete_type" id="del-temp" value="temp" required>
+                                        <label class="form-check-label" for="del-temp">Temporary Disconnection</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="delete_type" id="del-perm" value="perm" required>
+                                        <label class="form-check-label" for="del-perm">Permanent/Delete</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger">Delete Account</button>
+                                </div>
+                                </form>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card table-card">
+                                    <div class="card-header">
+                                        <h3>List Account</h3>
+                                        <div class="card-header-right">
+                                            <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#kt_modal_add_account">
+                                                <i class="ik ik-plus"></i>Upload Data
+                                            </a>
+                                            <a href="{{ url_for('static', filename='files/template_excel.xlsx') }}" 
+                                                class="btn btn-success" 
+                                                download>
+                                                    <i class="ik ik-download"></i> Download Template
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                            <table class="table table-hover mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ID System</th>
+                                                        <th class="text-center">Total Data</th>
+                                                        <th class="text-center">Group</th>
+                                                        <th class="text-center">Upload Date</th>
+                                                        <th class="text-center">Exp Date</th>
+                                                        <th class="text-center">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for user in users %}
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-inline-block align-middle">
+                                                                <img src="{{ user.group_logo or url_for('static', filename='assets/img/default.png') }}" 
+                                                                    alt="{{ user.group_name }} logo" 
+                                                                    class="rounded-circle img-40 align-top mr-15">
+                                                                <div class="d-inline-block">
+                                                                    <h6>{{ user.id_system }}</h6>
+                                                                    <p class="text-muted mb-0">{{ user.username }}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-center">{{ user.total_data or 0 }}</td>
+                                                        <td class="text-center">{{ user.group_name }}</td>
+                                                        <td class="text-center">{{ user.tanggal_upload.strftime('%Y-%m-%d') if user.tanggal_upload else '-' }}</td>
+                                                        <td class="text-center">{{ user.exp_date.strftime('%Y-%m-%d') if user.exp_date else '-' }}</td>
+                                                        <td class="text-center">
+                                                            <a data-bs-toggle="modal" 
+                                                                data-bs-target="#deleteModal" 
+                                                                data-user-id="{{ user.user_id }}">
+                                                                    <i class="ik ik-trash-2 f-16 mr-15 text-red" style="cursor: pointer;"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <aside class="right-sidebar" style="max-height: 600px; overflow-y: auto;">
+                    <div class="sidebar-chat" data-plugin="chat-sidebar">
+                        <div class="sidebar-chat-info">
+                            <h6>List Account Active</h6>
+                            <form class="mr-t-10">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" placeholder="Search for account ..."> 
+                                    <i class="ik ik-search"></i>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="chat-list">
+                            <div class="list-group row">
+                                {% for user in sidebar_users %}
+                                <span class="list-group-item" data-chat-user="{{ user.username }}">
+                                    <figure class="{{ 'user--online' if user.is_online() else 'user--busy' }}">
+                                        <img src="{{ user.group_rel.logo or '/static/assets/img/default.png' }}"
+                                            alt="{{ user.group_rel.company }} logo"
+                                            class="rounded-circle img-40 align-top mr-15">
+                                    </figure>
+                                    <span>
+                                        <span class="name">{{ user.username }}</span>
+                                        <span class="username">{{ user.last_seen_ago() }}</span>
+                                    </span>
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+                <div class="chat-panel" hidden>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            <a href="javascript:void(0);"><i class="ik ik-message-square text-success"></i></a>  
+                            <span class="user-name">John Doe</span> 
+                            <button type="button" class="close" aria-label="Close"><span aria-hidden="true">×</span></button>
+                        </div>
+                        <div class="card-body">
+                            <div class="widget-chat-activity flex-1">
+                                <div class="messages">
+                                    <div class="message media reply">
+                                        <figure class="user--online">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/3.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>Epic Cheeseburgers come in all kind of styles.</p>
+                                        </div>
+                                    </div>
+                                    <div class="message media">
+                                        <figure class="user--online">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/1.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>Cheeseburgers make your knees weak.</p>
+                                        </div>
+                                    </div>
+                                    <div class="message media reply">
+                                        <figure class="user--offline">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/5.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>Cheeseburgers will never let you down.</p>
+                                            <p>They'll also never run around or desert you.</p>
+                                        </div>
+                                    </div>
+                                    <div class="message media">
+                                        <figure class="user--online">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/1.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>A great cheeseburger is a gastronomical event.</p>
+                                        </div>
+                                    </div>
+                                    <div class="message media reply">
+                                        <figure class="user--busy">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/5.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>There's a cheesy incarnation waiting for you no matter what you palete preferences are.</p>
+                                        </div>
+                                    </div>
+                                    <div class="message media">
+                                        <figure class="user--online">
+                                            <a href="#">
+                                                <img src="../static/assets/img/users/1.jpg" class="rounded-circle" alt="">
+                                            </a>
+                                        </figure>
+                                        <div class="message-body media-body">
+                                            <p>If you are a vegan, we are sorry for you loss.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <form action="javascript:void(0)" class="card-footer" method="post">
+                            <div class="d-flex justify-content-end">
+                                <textarea class="border-0 flex-1" rows="1" placeholder="Type your message here"></textarea>
+                                <button class="btn btn-icon" type="submit"><i class="ik ik-arrow-right text-success"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <footer class="footer">
+                    <div class="w-100 clearfix">
+                        <span class="text-center text-sm-left d-md-inline-block">Copyright © 2025 VJR. All Rights Reserved.</span>
+                    </div>
+                </footer>
+            </div>
+        </div>
+        
+        
+        
+
+        <div class="modal fade apps-modal" id="appsModal" tabindex="-1" role="dialog" aria-labelledby="appsModalLabel" aria-hidden="true" data-backdrop="false">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="ik ik-x-circle"></i></button>
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="quick-search">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-4 ml-auto mr-auto">
+                                    <div class="input-wrap">
+                                        <input type="text" id="quick-search" class="form-control" placeholder="Search..." />
+                                        <i class="ik ik-search"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-body d-flex align-items-center">
+                        <div class="container">
+                            <div class="apps-wrap">
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-bar-chart-2"></i><span>Dashboard</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-mail"></i><span>Message</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-users"></i><span>Accounts</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-shopping-cart"></i><span>Sales</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-briefcase"></i><span>Purchase</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-server"></i><span>Menus</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-clipboard"></i><span>Pages</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-message-square"></i><span>Chats</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-map-pin"></i><span>Contacts</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-box"></i><span>Blocks</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-calendar"></i><span>Events</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-bell"></i><span>Notifications</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-pie-chart"></i><span>Reports</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-layers"></i><span>Tasks</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-edit"></i><span>Blogs</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-settings"></i><span>Settings</span></a>
+                                </div>
+                                <div class="app-item">
+                                    <a href="#"><i class="ik ik-more-horizontal"></i><span>More</span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script>window.jQuery || document.write('<script src="../src/js/vendor/jquery-3.3.1.min.js"><\/script>')</script>
+        <script src="../static/assets/node_modules/popper.js/dist/umd/popper.min.js"></script>
+        <script src="../static/assets/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="../static/assets/node_modules/perfect-scrollbar/dist/perfect-scrollbar.min.js"></script>
+        <script src="../static/assets/node_modules/screenfull/dist/screenfull.js"></script>
+        <script src="../static/assets/node_modules/owl.carousel/dist/owl.carousel.min.js"></script>
+        <script src="../static/assets/node_modules/chartist/dist/chartist.min.js"></script>
+        <script src="../static/assets/node_modules/flot-charts/jquery.flot.js"></script>
+        <script src="../static/assets/node_modules/flot-charts/jquery.flot.categories.js"></script>
+        <script src="../static/assets/node_modules/flot.curvedlines/curvedLines.js"></script>
+        <script src="../static/assets/node_modules/jquery.flot.tooltip/js/jquery.flot.tooltip.js"></script>
+        <script src="../static/assets/dist/js/theme.min.js"></script>
+        <script src="../static/assets/js/widget-data.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='https://www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X','auto');ga('send','pageview');
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const roleAdminRadio = document.getElementById('role-admin');
+                const roleUserRadio = document.getElementById('role-user');
+                
+                const accountIdField = document.getElementById('account-id'); 
+                const accountUsernameField = document.getElementById('account-username');  
+                const accountPasswordField = document.getElementById('account-password');  
+                const accountPhoneField = document.getElementById('account-number'); 
+                const accountEmailField = document.getElementById('account-email');    
+                const accountGroupField = document.getElementById('account-group');   
+                
+                const submitButton = document.querySelector('button[type="submit"]');  
+                
+                function validateForm() {
+                    let isFormValid = true;
+        
+                    if (roleAdminRadio.checked) {
+                        if (!accountUsernameField.value || !accountPasswordField.value) {
+                            isFormValid = false;
+                        }
+                    } else if (roleUserRadio.checked) {  
+                        if (!accountUsernameField.value || 
+                            !accountPasswordField.value || 
+                            !accountPhoneField.value || 
+                            !accountEmailField.value || 
+                            !accountGroupField.value) {
+                            isFormValid = false;
+                        }
+                    }
+                    
+                    submitButton.disabled = !isFormValid;
+                    submitButton.classList.toggle('disabled', !isFormValid); 
+                }
+        
+                function toggleFields() {
+                    if (roleAdminRadio.checked) {
+                        accountIdField.parentElement.style.display = 'none';
+                        accountPhoneField.parentElement.style.display = 'none';
+                        accountEmailField.parentElement.style.display = 'none';
+                        accountGroupField.parentElement.style.display = 'none';
+        
+                        accountPhoneField.removeAttribute('required');
+                        accountEmailField.removeAttribute('required');
+                        accountGroupField.removeAttribute('required');
+                    } else {
+                        accountIdField.parentElement.style.display = 'block';
+                        accountPhoneField.parentElement.style.display = 'block';
+                        accountEmailField.parentElement.style.display = 'block';
+                        accountGroupField.parentElement.style.display = 'block';
+        
+                        accountPhoneField.setAttribute('required', 'required');
+                        accountEmailField.setAttribute('required', 'required');
+                        accountGroupField.setAttribute('required', 'required');
+                    }
+        
+                    validateForm();
+                }
+        
+                roleAdminRadio.addEventListener('change', toggleFields);
+                roleUserRadio.addEventListener('change', toggleFields);
+        
+                accountUsernameField.addEventListener('input', validateForm);
+                accountPasswordField.addEventListener('input', validateForm);
+                accountPhoneField.addEventListener('input', validateForm);
+                accountEmailField.addEventListener('input', validateForm);
+                accountGroupField.addEventListener('change', validateForm);
+        
+                toggleFields();
+            });
+        </script>
+        <script>
+            setTimeout(function() {
+                const alert = document.getElementById("flash-alert");
+                if (alert) {
+                    let bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }
+            }, 3000);
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var editUserModal = document.getElementById('editUserModal');
+
+                editUserModal.addEventListener('show.bs.modal', function (event) {
+
+                    var button = event.relatedTarget;
+
+                    var userId = button.getAttribute('data-user-id');
+                    var userName = button.getAttribute('data-user-name');
+                    var userStatus = button.getAttribute('data-user-status');
+
+                    document.getElementById('modal-user-id').value = userId;
+                    document.getElementById('modal-user-name').textContent = userName;
+                    document.getElementById('modal-user-status').value = userStatus;
+                });
+            });
+            </script>
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const searchInput = document.querySelector(".sidebar-chat-info input");
+                    const items = document.querySelectorAll(".list-group-item");
+                    searchInput.addEventListener("keyup", function() {
+                        const query = this.value.toLowerCase();
+                        items.forEach(item => {
+                            const name = item.querySelector(".name").textContent.toLowerCase();
+                            const username = item.querySelector(".username").textContent.toLowerCase();
+                            if (name.includes(query) || username.includes(query)) {
+                                item.style.display = "";
+                            } else {
+                                item.style.display = "none";
+                            }
+                        });
+                    });
+                });
+            </script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var deleteModal = document.getElementById('deleteModal');
+                    deleteModal.addEventListener('show.bs.modal', function (event) {
+                        var button = event.relatedTarget; 
+                        var userId = button.getAttribute('data-user-id');
+                        var form = document.getElementById('deleteForm');
+                        form.action = '/upload_data/delete/' + userId;
+                    });
+                });
+            </script>
+            <script>
+            setTimeout(function() {
+                const alert = document.getElementById("flash-alert");
+                if (alert) {
+                    let bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }
+            }, 3000);
+        </script>
+    </body>
+</html>
