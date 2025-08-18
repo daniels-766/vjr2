@@ -993,6 +993,10 @@ def my_case():
         except ValueError:
             pass
 
+    staff_id = request.args.get('staff')
+    if staff_id:
+        query = query.filter(Data.user_id == int(staff_id))
+
     query_result = query.all()
 
     remarks_map = {
@@ -1021,8 +1025,15 @@ def my_case():
 
         d.remarks_display = remarks_map.get(str(d.remark), 'Unknown')
 
+    users_list = User.query.filter_by(role="User").all()
+
     group_obj = UserGroup.query.filter_by(id=current_user.group).first()
     group_name = group_obj.company if group_obj else 'N/A'
+
+    remark_filter = request.args.get('remark')
+    outstanding_min = request.args.get('outstanding_min')
+    outstanding_max = request.args.get('outstanding_max')
+    staff_id = request.args.get('staff')
 
     return render_template(
         'manage_case.html',
@@ -1032,8 +1043,13 @@ def my_case():
         id_system=current_user.id_system,
         data_list=query_result,
         num_sip=current_user.num_sip,
-        pas_sip=current_user.pas_sip
-    )
+        pas_sip=current_user.pas_sip,
+        users_list=users_list,
+        staff_id=staff_id,
+        remark_filter=remark_filter,
+        outstanding_min=outstanding_min,
+        outstanding_max=outstanding_max
+        )
 
 @app.route('/my-case/<int:data_id>')
 @login_required

@@ -133,6 +133,9 @@ table.dataTable th.no-sort::before {
                                             <button type="button" class="btn btn-success" data-toggle="modal" data-target="#kt_modal_add_account">
                                                 <i class="ik ik-filter"></i>Filter
                                             </button>
+                                            <a href="{{ url_for('my_case') }}" class="btn btn-warning">
+                                                <i class="ik ik-refresh-cw"></i> Reset
+                                            </a>
                                         </div>
                                     </div>
                                     <div class="card-body">
@@ -206,32 +209,45 @@ table.dataTable th.no-sort::before {
                         <form method="GET" action="{{ url_for('my_case') }}">
                         <div class="modal-content">
                             <div class="modal-header">
-                            <h5 class="modal-title">Filter by Remarks</h5>
+                            <h5 class="modal-title">Filter Data</h5>
                             <button type="button" class="close" data-dismiss="modal">&times;</button>
                             </div>
                             <div class="modal-body">
                                 <label for="remarks">Remarks</label>
                                 <select name="remark" id="remark" class="form-control">
-                                    <option value="">-- All --</option>
-                                    <option value="1">Unremark Case</option>
-                                    <option value="7">Not PTP</option>
-                                    <option value="2">PTP</option>
-                                    <option value="3">Not Active</option>
-                                    <option value="4">No Answer</option>
-                                    <option value="5">Answer not PTP</option>
-                                    <option value="6">Paid</option>
+                                    <option value="" {% if not remark_filter %}selected{% endif %}>-- All --</option>
+                                    <option value="1" {% if remark_filter == '1' %}selected{% endif %}>Unremark Case</option>
+                                    <option value="7" {% if remark_filter == '7' %}selected{% endif %}>Not PTP</option>
+                                    <option value="2" {% if remark_filter == '2' %}selected{% endif %}>PTP</option>
+                                    <option value="3" {% if remark_filter == '3' %}selected{% endif %}>Not Active</option>
+                                    <option value="4" {% if remark_filter == '4' %}selected{% endif %}>No Answer</option>
+                                    <option value="5" {% if remark_filter == '5' %}selected{% endif %}>Answer not PTP</option>
+                                    <option value="6" {% if remark_filter == '6' %}selected{% endif %}>Paid</option>
                                 </select>
 
                                 <hr>
                                 <label>Outstanding Amount Range</label>
                                 <div class="form-row">
                                     <div class="col">
-                                        <input type="number" name="outstanding_min" class="form-control" placeholder="Min">
+                                        <input type="number" name="outstanding_min" class="form-control" placeholder="Min"
+                                            value="{{ outstanding_min or '' }}">
                                     </div>
                                     <div class="col">
-                                        <input type="number" name="outstanding_max" class="form-control" placeholder="Max">
+                                        <input type="number" name="outstanding_max" class="form-control" placeholder="Max"
+                                            value="{{ outstanding_max or '' }}">
                                     </div>
                                 </div>
+
+                                <hr>
+                                <label for="staff">User</label>
+                                <select name="staff" id="staff" class="form-control">
+                                    <option value="" {% if not staff_id %}selected{% endif %}>-- All --</option>
+                                    {% for u in users_list %}
+                                        <option value="{{ u.id }}" {% if staff_id and staff_id|int == u.id %}selected{% endif %}>
+                                            {{ u.username }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="modal-footer">
                             <button type="submit" class="btn btn-primary">Apply Filter</button>
