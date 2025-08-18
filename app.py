@@ -22,7 +22,7 @@ from sqlalchemy.orm import joinedload
 ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/vjr_new'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Vjr@1234567890@localhost/vjr_new'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 app.config['MAX_CONTENT_LENGTH'] = 150 * 1024 * 1024
 app.config['SECRET_KEY'] = 'b35dfe6ce150230940bd145823034486' 
