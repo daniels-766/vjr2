@@ -17,12 +17,14 @@ from sqlalchemy.sql import func, case, asc, desc
 from flask import render_template, make_response, jsonify
 from flask_apscheduler import APScheduler
 import pytz
+from pytz import timezone
 from sqlalchemy.orm import joinedload
 
 ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Vjr@1234567890@localhost/vjr_new'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/vjr_new'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Vjr%401234567890@localhost/vjr_new'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 app.config['MAX_CONTENT_LENGTH'] = 150 * 1024 * 1024
 app.config['SECRET_KEY'] = 'b35dfe6ce150230940bd145823034486' 
@@ -42,6 +44,18 @@ app.config.from_object(Config())
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
+
+@scheduler.task('cron', id='increment_overdue', hour=0, minute=0, timezone='Asia/Jakarta')
+def increment_overdue():
+    with app.app_context():
+        all_data = Data.query.all()
+        for d in all_data:
+            if d.overdue and d.overdue.isdigit():
+                d.overdue = str(int(d.overdue) + 1)
+            else:
+                d.overdue = "1"
+        db.session.commit()
+        print(f"[{datetime.now(timezone('Asia/Jakarta')).strftime('%Y-%m-%d %H:%M:%S')}] Overdue berhasil ditambah.")
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -163,7 +177,7 @@ def inject_users_status():
 @scheduler.task('cron', id='delete_expired_data', hour=0)
 def delete_expired_data():
     today = datetime.now().date()
-    expired_data = Data.query.filter(Data.exp_date <= today).all()
+    expired_data = Data.query.filter(Data.exp_date < today).all()
     
     for data in expired_data:
         db.session.delete(data)
@@ -417,7 +431,6 @@ def dashboard():
         data_remarks = Data.query.filter(Data.user_id == current_user.id, Data.remark != '1').count()
         remark_percentage = round((data_remarks / total_data) * 100, 2) if total_data else 0
 
-        # Mapping label remarks
         remark_labels = {
             "1": "Unremark Case",
             "2": "PTP",
@@ -428,7 +441,6 @@ def dashboard():
             "7": "Not PTP"
         }
 
-        # Ambil jumlah data per remark
         remark_counts = {}
         for code in remark_labels.keys():
             count = Data.query.filter(
@@ -437,10 +449,8 @@ def dashboard():
             ).count()
             remark_counts[code] = count
 
-        # Urutkan sesuai urutan khusus
         remark_order = ["1", "7", "2", "3", "4", "5", "6"]
 
-        # Buat list untuk template
         remarks_list = []
         for code in remark_order:
             count = remark_counts.get(code, 0)
@@ -937,7 +947,6 @@ def delete_user_data(id_system):
 
     return redirect(url_for('delete'))
 
-# ADMIN
 from sqlalchemy import cast, Integer
 
 def mask_phone(phone):
@@ -1642,7 +1651,10 @@ def detail_data(id):
 @app.route('/my-data')
 @login_required
 def my_data():
-    query = Data.query.join(User).join(UserGroup, User.group == UserGroup.id).filter(Data.user_id == current_user.id, Data.remark == "7")
+    query = Data.query.join(User).join(UserGroup, User.group == UserGroup.id).filter(
+        Data.user_id == current_user.id,
+        Data.remark == "7"
+    )
 
     if current_user.role != 'user':
         return redirect(request.referrer)
@@ -1707,10 +1719,18 @@ def my_data():
     page = request.args.get('page', 1, type=int)
     per_page = 10
     total = len(query_result)
-    start = (page - 1) * per_page
-    end = start + per_page
-    paginated_data = query_result[start:end]
     total_pages = (total + per_page - 1) // per_page
+    paginated_data = query_result[(page - 1) * per_page: page * per_page]
+
+    if total_pages <= 7:
+        page_numbers = list(range(1, total_pages + 1))
+    else:
+        if page <= 3:
+            page_numbers = [1, 2, 3, 4, "...", total_pages]
+        elif page >= total_pages - 2:
+            page_numbers = [1, "...", total_pages-3, total_pages-2, total_pages-1, total_pages]
+        else:
+            page_numbers = [1, "...", page-1, page, page+1, "...", total_pages]
 
     query_params = request.args.to_dict()
     query_params.pop('page', None)
@@ -1727,6 +1747,7 @@ def my_data():
         data_list=paginated_data,
         current_page=page,
         total_pages=total_pages,
+        page_numbers=page_numbers, 
         query_params=query_params,
         num_sip=current_user.num_sip,
         pas_sip=current_user.pas_sip
@@ -1735,7 +1756,10 @@ def my_data():
 @app.route('/no-remarks')
 @login_required
 def no_remarks():
-    query = Data.query.join(User).join(UserGroup, User.group == UserGroup.id).filter(Data.user_id == current_user.id, Data.remark == "1")
+    query = Data.query.join(User).join(UserGroup, User.group == UserGroup.id).filter(
+        Data.user_id == current_user.id,
+        Data.remark == "1"
+    )
 
     if current_user.role != 'user':
         return redirect(request.referrer)
@@ -1804,6 +1828,19 @@ def no_remarks():
     end = start + per_page
     paginated_data = query_result[start:end]
     total_pages = (total + per_page - 1) // per_page
+
+    pages_to_show = []
+    if total_pages > 1:
+        pages_to_show.append(1)
+        if page - 1 > 2:
+            pages_to_show.append("...")
+        for p in range(page - 1, page + 2):
+            if 1 < p < total_pages: 
+                pages_to_show.append(p)
+        if page + 1 < total_pages - 1:
+            pages_to_show.append("...")
+        if total_pages not in pages_to_show:
+            pages_to_show.append(total_pages) 
 
     query_params = request.args.to_dict()
     query_params.pop('page', None)
@@ -1821,10 +1858,10 @@ def no_remarks():
         current_page=page,
         total_pages=total_pages,
         query_params=query_params,
+        pages_to_show=pages_to_show,
         num_sip=current_user.num_sip,
         pas_sip=current_user.pas_sip
     )
-
 
 @app.route('/lunas')
 @login_required
@@ -1833,6 +1870,7 @@ def lunas():
         Data.remark == '6',
         Data.user_id == current_user.id
     )
+
     if current_user.role != 'user':
         return redirect(request.referrer)
 
@@ -1896,10 +1934,18 @@ def lunas():
     page = request.args.get('page', 1, type=int)
     per_page = 10
     total = len(query_result)
-    start = (page - 1) * per_page
-    end = start + per_page
-    paginated_data = query_result[start:end]
     total_pages = (total + per_page - 1) // per_page
+    paginated_data = query_result[(page - 1) * per_page: page * per_page]
+
+    if total_pages <= 7:
+        page_numbers = list(range(1, total_pages + 1))
+    else:
+        if page <= 3:
+            page_numbers = [1, 2, 3, 4, "...", total_pages]
+        elif page >= total_pages - 2:
+            page_numbers = [1, "...", total_pages-3, total_pages-2, total_pages-1, total_pages]
+        else:
+            page_numbers = [1, "...", page-1, page, page+1, "...", total_pages]
 
     query_params = request.args.to_dict()
     query_params.pop('page', None)
@@ -1916,6 +1962,7 @@ def lunas():
         data_list=paginated_data,
         current_page=page,
         total_pages=total_pages,
+        page_numbers=page_numbers,
         query_params=query_params,
         num_sip=current_user.num_sip,
         pas_sip=current_user.pas_sip
@@ -2134,6 +2181,16 @@ def not_active():
     paginated_data = query_result[start:end]
     total_pages = (total + per_page - 1) // per_page
 
+    if total_pages <= 7:
+        page_numbers = list(range(1, total_pages + 1))
+    else:
+        if page <= 3:
+            page_numbers = [1, 2, 3, 4, "...", total_pages]
+        elif page >= total_pages - 2:
+            page_numbers = [1, "...", total_pages-3, total_pages-2, total_pages-1, total_pages]
+        else:
+            page_numbers = [1, "...", page-1, page, page+1, "...", total_pages]
+
     query_params = request.args.to_dict()
     query_params.pop('page', None)
 
@@ -2149,6 +2206,7 @@ def not_active():
         data_list=paginated_data,
         current_page=page,
         total_pages=total_pages,
+        page_numbers=page_numbers,
         query_params=query_params,
         num_sip=current_user.num_sip,
         pas_sip=current_user.pas_sip
@@ -2161,6 +2219,7 @@ def no_answer():
         Data.remark == '4',
         Data.user_id == current_user.id
     )
+
     if current_user.role != 'user':
         return redirect(request.referrer)
 
@@ -2224,10 +2283,18 @@ def no_answer():
     page = request.args.get('page', 1, type=int)
     per_page = 10
     total = len(query_result)
-    start = (page - 1) * per_page
-    end = start + per_page
-    paginated_data = query_result[start:end]
     total_pages = (total + per_page - 1) // per_page
+    paginated_data = query_result[(page - 1) * per_page: page * per_page]
+
+    if total_pages <= 7:
+        page_numbers = list(range(1, total_pages + 1))
+    else:
+        if page <= 3:
+            page_numbers = [1, 2, 3, 4, "...", total_pages]
+        elif page >= total_pages - 2:
+            page_numbers = [1, "...", total_pages-3, total_pages-2, total_pages-1, total_pages]
+        else:
+            page_numbers = [1, "...", page-1, page, page+1, "...", total_pages]
 
     query_params = request.args.to_dict()
     query_params.pop('page', None)
@@ -2244,6 +2311,7 @@ def no_answer():
         data_list=paginated_data,
         current_page=page,
         total_pages=total_pages,
+        page_numbers=page_numbers,
         query_params=query_params,
         num_sip=current_user.num_sip,
         pas_sip=current_user.pas_sip
@@ -2256,6 +2324,7 @@ def answer_no_ptp():
         Data.remark == '5',
         Data.user_id == current_user.id
     )
+
     if current_user.role != 'user':
         return redirect(request.referrer)
 
@@ -2319,10 +2388,18 @@ def answer_no_ptp():
     page = request.args.get('page', 1, type=int)
     per_page = 10
     total = len(query_result)
-    start = (page - 1) * per_page
-    end = start + per_page
-    paginated_data = query_result[start:end]
     total_pages = (total + per_page - 1) // per_page
+    paginated_data = query_result[(page - 1) * per_page: page * per_page]
+
+    if total_pages <= 7:
+        page_numbers = list(range(1, total_pages + 1))
+    else:
+        if page <= 3:
+            page_numbers = [1, 2, 3, 4, "...", total_pages]
+        elif page >= total_pages - 2:
+            page_numbers = [1, "...", total_pages-3, total_pages-2, total_pages-1, total_pages]
+        else:
+            page_numbers = [1, "...", page-1, page, page+1, "...", total_pages]
 
     query_params = request.args.to_dict()
     query_params.pop('page', None)
@@ -2339,6 +2416,7 @@ def answer_no_ptp():
         data_list=paginated_data,
         current_page=page,
         total_pages=total_pages,
+        page_numbers=page_numbers,
         query_params=query_params,
         num_sip=current_user.num_sip,
         pas_sip=current_user.pas_sip
@@ -2435,6 +2513,16 @@ def user_ptp():
     total_pages = (total + per_page - 1) // per_page
     paginated_data = query_result[(page - 1) * per_page: page * per_page]
 
+    if total_pages <= 7:
+        page_numbers = list(range(1, total_pages + 1))
+    else:
+        if page <= 3:
+            page_numbers = [1, 2, 3, 4, "...", total_pages]
+        elif page >= total_pages - 2:
+            page_numbers = [1, "...", total_pages-3, total_pages-2, total_pages-1, total_pages]
+        else:
+            page_numbers = [1, "...", page-1, page, page+1, "...", total_pages]
+
     query_params = request.args.to_dict()
     query_params.pop('page', None)
 
@@ -2450,6 +2538,7 @@ def user_ptp():
         id_system=current_user.id_system,
         current_page=page,
         total_pages=total_pages,
+        page_numbers=page_numbers,
         query_params=query_params,
         num_sip=current_user.num_sip,
         pas_sip=current_user.pas_sip

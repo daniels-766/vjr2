@@ -477,33 +477,36 @@
                                                 </tbody>
                                             </table>
 											<nav aria-label="Page navigation">
-                                                <ul class="pagination justify-content-start">
-                                                    {% if current_page > 1 %}
-                                                    <li class="page-item">
-                                                        <a class="page-link" href="{{ url_for('user_ptp') }}?page={{ current_page - 1 }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">
-                                                            &laquo;
-                                                        </a>
-                                                    </li>
-                                                    {% endif %}
-                                            
-                                                    {% for i in range(1, total_pages + 1) %}
-                                                    <li class="page-item {% if i == current_page %}active{% endif %}">
-                                                        <a class="page-link" href="{{ url_for('user_ptp') }}?page={{ i }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">
-                                                            {{ i }}
-                                                        </a>
-                                                    </li>
-                                                    {% endfor %}
-                                            
-                                                    {% if current_page < total_pages %}
-                                                    <li class="page-item">
-                                                        <a class="page-link" href="{{ url_for('user_ptp') }}?page={{ current_page + 1 }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">
-                                                            &raquo;
-                                                        </a>
-                                                    </li>
-                                                    {% endif %}
-                                                </ul>
-                                            </nav>
-                                                                                    
+												<ul class="pagination justify-content-center">
+													{% if current_page > 1 %}
+													<li class="page-item">
+														<a class="page-link" href="{{ url_for('user_ptp') }}?page={{ current_page - 1 }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">
+															&laquo;
+														</a>
+													</li>
+													{% endif %}
+
+													{% for i in page_numbers %}
+														{% if i == '...' %}
+															<li class="page-item disabled"><span class="page-link">…</span></li>
+														{% else %}
+															<li class="page-item {% if i == current_page %}active{% endif %}">
+																<a class="page-link" href="{{ url_for('user_ptp') }}?page={{ i }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">
+																	{{ i }}
+																</a>
+															</li>
+														{% endif %}
+													{% endfor %}
+
+													{% if current_page < total_pages %}
+													<li class="page-item">
+														<a class="page-link" href="{{ url_for('user_ptp') }}?page={{ current_page + 1 }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">
+															&raquo;
+														</a>
+													</li>
+													{% endif %}
+												</ul>
+											</nav>                                      
                                         </div>
                                     </div> 
                                 </div>

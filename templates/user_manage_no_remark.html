@@ -123,7 +123,7 @@
 												<span class="menu-title">Not Active</span>
 											</span>
 										</a>
-										<a href="{{ url_for('not_active') }}" class="menu-item menu-accordion">
+										<a href="{{ url_for('no_answer') }}" class="menu-item menu-accordion">
 											<span class="menu-link">
 												<span class="menu-bullet">
 													<span class="bullet bullet-dot"></span>
@@ -131,7 +131,7 @@
 												<span class="menu-title">No Answer</span>
 											</span>
 										</a>
-										<a href="{{ url_for('not_active') }}" class="menu-item menu-accordion">
+										<a href="{{ url_for('answer_no_ptp') }}" class="menu-item menu-accordion">
 											<span class="menu-link">
 												<span class="menu-bullet">
 													<span class="bullet bullet-dot"></span>
@@ -477,33 +477,36 @@
                                                 </tbody>
                                             </table>
 											<nav aria-label="Page navigation">
-                                                <ul class="pagination justify-content-start">
-                                                    {% if current_page > 1 %}
-                                                    <li class="page-item">
-                                                        <a class="page-link" href="{{ url_for('my_data') }}?page={{ current_page - 1 }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">
-                                                            &laquo;
-                                                        </a>
-                                                    </li>
-                                                    {% endif %}
-                                            
-                                                    {% for i in range(1, total_pages + 1) %}
-                                                    <li class="page-item {% if i == current_page %}active{% endif %}">
-                                                        <a class="page-link" href="{{ url_for('my_data') }}?page={{ i }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">
-                                                            {{ i }}
-                                                        </a>
-                                                    </li>
-                                                    {% endfor %}
-                                            
-                                                    {% if current_page < total_pages %}
-                                                    <li class="page-item">
-                                                        <a class="page-link" href="{{ url_for('my_data') }}?page={{ current_page + 1 }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">
-                                                            &raquo;
-                                                        </a>
-                                                    </li>
-                                                    {% endif %}
-                                                </ul>
-                                            </nav>
-                                                                                    
+												<ul class="pagination justify-content-center">
+
+													{% if current_page > 1 %}
+													<li class="page-item">
+													<a class="page-link" href="{{ url_for('no_remarks') }}?page={{ current_page - 1 }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">
+														&laquo;
+													</a>
+													</li>
+													{% endif %}
+
+													{% for p in pages_to_show %}
+													{% if p == "..." %}
+														<li class="page-item disabled"><span class="page-link">...</span></li>
+													{% else %}
+														<li class="page-item {% if p == current_page %}active{% endif %}">
+														<a class="page-link" href="{{ url_for('no_remarks') }}?page={{ p }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">{{ p }}</a>
+														</li>
+													{% endif %}
+													{% endfor %}
+
+													{% if current_page < total_pages %}
+													<li class="page-item">
+													<a class="page-link" href="{{ url_for('no_remarks') }}?page={{ current_page + 1 }}{% for key, val in query_params.items() %}&{{ key }}={{ val }}{% endfor %}">
+														&raquo;
+													</a>
+													</li>
+													{% endif %}
+
+												</ul>
+											</nav>
                                         </div>
                                     </div> 
                                 </div>
