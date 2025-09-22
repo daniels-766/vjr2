@@ -689,25 +689,57 @@ def delete_group():
 
     return redirect(url_for('manage_group'))
 
+# @app.route('/delete-account', methods=['POST'])
+# def delete_account():
+#     user_id = request.form['user_id']
+#     delete_type = request.form['delete_type']
+
+#     user = User.query.get(user_id)
+#     if not user:
+#         flash('User not found.', 'danger')
+#         return redirect(url_for('manage_users'))
+
+#     if delete_type == 'temp':
+#         user.status = 'nonactive'
+#         db.session.commit()
+#         flash('User temporarily disconnected.', 'warning')
+#     elif delete_type == 'perm':
+#         db.session.delete(user)
+#         db.session.commit()
+#         flash('User permanently deleted.', 'danger')
+
+#     return redirect(url_for('manage_users'))
+
+import traceback
+
 @app.route('/delete-account', methods=['POST'])
 def delete_account():
-    user_id = request.form['user_id']
-    delete_type = request.form['delete_type']
+    try:
+        user_id = int(request.form['user_id'])
+        delete_type = request.form['delete_type']
 
-    user = User.query.get(user_id)
-    if not user:
-        flash('User not found.', 'danger')
-        return redirect(url_for('manage_users'))
+        user = User.query.get(user_id)
+        if not user:
+            flash('User not found.', 'danger')
+            return redirect(url_for('manage_users'))
 
-    if delete_type == 'temp':
-        user.status = 'nonactive'
-        db.session.commit()
-        flash('User temporarily disconnected.', 'warning')
-    elif delete_type == 'perm':
-        db.session.delete(user)
-        db.session.commit()
-        flash('User permanently deleted.', 'danger')
+        if delete_type == 'temp':
+            user.status = 'nonactive'
+            db.session.commit()
+            flash('User temporarily disconnected.', 'warning')
 
+        elif delete_type == 'perm':
+            Data.query.filter_by(user_id=user.id).delete()
+            UserLoginLog.query.filter_by(user_id=user.id).delete()
+            db.session.delete(user)
+            db.session.commit()
+            flash('User permanently deleted.', 'danger')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting user. Check server log.', 'danger')
+        print("=== DELETE USER ERROR ===")
+        traceback.print_exc()
     return redirect(url_for('manage_users'))
 
 @app.route('/update_user', methods=['POST'])
