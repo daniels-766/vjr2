@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+create_admin.py
+wsgi.py
