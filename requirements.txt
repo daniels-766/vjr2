@@ -7,3 +7,4 @@ pandas
 flask_apscheduler
 pymysql
 openpyxl
+panoramisk
